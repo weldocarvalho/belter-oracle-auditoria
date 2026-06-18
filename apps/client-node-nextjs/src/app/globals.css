@@ -1,26 +1,44 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+  /* Premium Light Mode: High-End Dermatology Spa */
+  --color-background: #FAF8F5;       /* Warm Alabaster - Organic, soothing, premium */
+  --color-foreground: #1A1A1E;       /* Deep Caviar - High contrast, luxury Editorial feel */
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-card: #FFFFFF;
+  --color-card-foreground: #1A1A1E;
+  --color-popover: #FFFFFF;
+  --color-popover-foreground: #1A1A1E;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Primary Accent: High-Tech Charcoal Caviar (Used for authoritative elements) */
+  --color-primary: #1A1A1E;
+  --color-primary-foreground: #FAF8F5;
+
+  /* Secondary Accent: Luminous Champagne Amber (Exclusively for high-intent conversions/Pix) */
+  --color-secondary: #D4AF37;        /* Rich Champagne Gold - Elegant conversion driver */
+  --color-secondary-foreground: #1A1A1E;
+
+  --color-muted: #F3EFEA;            /* Warm Linen Tints */
+  --color-muted-foreground: #706F74;
+  --color-accent: #F6F1EB;           /* Ultra-soft cream highlighting */
+  --color-accent-foreground: #1A1A1E;
+
+  --color-destructive: #BC4A4A;
+  --color-destructive-foreground: #FAF8F5;
+
+  /* Fine Borders for clean, editorial layout isolation */
+  --color-border: #E6E1DA;
+  --color-input: #E6E1DA;
+  --color-ring: #1A1A1E;
+
+  --radius-lg: 1rem;                 /* Slightly softer, elegant curves */
+  --radius-md: calc(1rem - 2px);
+  --radius-sm: calc(1rem - 4px);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
 }

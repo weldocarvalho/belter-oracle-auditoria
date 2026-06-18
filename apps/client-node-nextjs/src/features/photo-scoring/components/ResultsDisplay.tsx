@@ -12,11 +12,12 @@ interface ResultsDisplayProps {
 export function ResultsDisplay({ result, onRestart }: ResultsDisplayProps) {
   // Visual dictionary grouping grading scales dynamically
   const gradeSystem = {
-    1: { name: "Grau 1 (Leve)", color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200" },
-    2: { name: "Grau 2 (Moderado)", color: "text-amber-600 bg-amber-50 dark:bg-amber-950/30 border-amber-200" },
-    3: { name: "Grau 3 (Avançado)", color: "text-orange-600 bg-orange-50 dark:bg-orange-950/30 border-orange-200" },
-    4: { name: "Grau 4 (Severo)", color: "text-rose-600 bg-rose-50 dark:bg-rose-950/30 border-rose-200" }
+    1: { name: "Grau 1 (Leve)", color: "text-zinc-800 bg-zinc-100 border-zinc-200 dark:text-zinc-200 dark:bg-zinc-900 dark:border-zinc-800" },
+    2: { name: "Grau 2 (Moderado)", color: "text-amber-800 bg-amber-50/50 border-amber-200 dark:text-amber-300 dark:bg-amber-950/20 dark:border-amber-900" },
+    3: { name: "Grau 3 (Avançado)", color: "text-orange-800 bg-orange-50/50 border-orange-200 dark:text-orange-300 dark:bg-orange-950/20 dark:border-orange-900" },
+    4: { name: "Grau 4 (Severo)", color: "text-rose-800 bg-rose-50/50 border-rose-200 dark:text-rose-300 dark:bg-rose-950/20 dark:border-rose-900" }
   };
+
 
   const activeGrade = gradeSystem[result.cellulite_grade];
 
