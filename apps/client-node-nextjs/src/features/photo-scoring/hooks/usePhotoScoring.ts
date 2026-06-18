@@ -59,7 +59,7 @@ export function usePhotoScoring({ bffUrl, wsUrl, userId }: PhotoScoringConfig) {
       const optimizedBlob = await optimizePhoto(rawBlob);
 
       // 2. Request short-lived secure upload credential from NestJS BFF
-      const tokenResponse = await fetch(`${bffUrl}/api/v1/photos/presigned-url`, {
+      const tokenResponse = await fetch(`${bffUrl}/api/v1/photo-scoring/presigned-url`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, fileType: 'image/jpeg' }),

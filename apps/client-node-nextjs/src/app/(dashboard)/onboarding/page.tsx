@@ -16,8 +16,8 @@ export default function OnboardingPage() {
     errorMessage, 
     resetPipeline 
   } = usePhotoScoring({
-    bffUrl: process.env.NEXT_PUBLIC_BFF_URL || 'http://localhost:3000',
-    wsUrl: process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3000',
+    bffUrl: process.env.NEXT_PUBLIC_BFF_URL || 'http://localhost:3333',
+    wsUrl: process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3333',
     userId: 'usr_prod_01j5x' // Map token contextual subject identifier here later
   });
 

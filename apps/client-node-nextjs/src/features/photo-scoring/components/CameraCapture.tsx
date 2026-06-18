@@ -74,9 +74,9 @@ export function CameraCapture({ onCaptureReady, onCancel }: CameraCaptureProps) 
 
       {/* Clinical Guide Mask Overlay */}
       <div className="absolute inset-0 border-[24px] border-black/40 pointer-events-none flex items-center justify-center">
-        <div className="w-[85%] h-[70%] border-2 border-dashed border-emerald-400/60 rounded-[30%] flex flex-col items-center justify-between p-6">
+        <div className="w-[85%] h-[70%] border-2 border-dashed border-white/70 rounded-[30%] flex flex-col items-center justify-between p-6">
           <div className="bg-black/60 backdrop-blur-sm rounded-lg px-2.5 py-1 text-[10px] text-zinc-300 font-medium tracking-wide flex items-center gap-1">
-            <HelpCircle className="h-3 w-3 text-emerald-400" /> Iluminação Direta
+            <HelpCircle className="h-3 w-3 text-secondary" /> Iluminação Direta
           </div>
           <p className="text-white text-[11px] font-medium text-center bg-zinc-900/90 border border-zinc-700 px-3 py-1.5 rounded-full shadow-md">
             Centralize a área desejada aqui a 30cm de distância
