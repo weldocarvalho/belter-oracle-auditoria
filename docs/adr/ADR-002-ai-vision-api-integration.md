@@ -1,0 +1,1 @@
+This Architectural Decision Record (ADR) outlines the integration of OpenAI's GPT-4o-mini, with fallback to Anthropic's Claude 3.5 Sonnet, to provide automated, high-accuracy cellulite analysis via photo submissions. The solution utilizes structured JSON outputs to ensure cost efficiency, low MLOps overhead, and compliant, localized results for the Brazilian market.
