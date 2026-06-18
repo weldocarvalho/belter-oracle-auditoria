@@ -13,9 +13,9 @@
 
 ### Epic 1: Next.js Mock Local Environment (Optional / Rapid UI Validation)
 *Objective: Unblock front-end aesthetic iteration without waiting for full cloud infra.*
-- [ ] Create a local mock toggle inside `usePhotoScoring.ts` or a Next.js Route Handler (`src/app/api/v1/photos/mock/route.ts`).
-- [ ] Simulate a 3-second network processing lag to test the retention animations.
-- [ ] Inject dummy JSON payloads matching the clinical scale (Grades 1-4) to test UI color-state thresholds.
+- [x] Create a local mock toggle inside `usePhotoScoring.ts` or a Next.js Route Handler (`src/app/api/v1/photos/mock/route.ts`).
+- [x] Simulate a 3-second network processing lag to test the retention animations.
+- [x] Inject dummy JSON payloads matching the clinical scale (Grades 1-4) to test UI color-state thresholds.
 
 ### Epic 2: NestJS BFF Secure Storage Gateway
 *Objective: Implement the secure handshake protocol allowing clients to fetch authorization credentials.*
