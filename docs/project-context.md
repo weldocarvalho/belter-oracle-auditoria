@@ -4,9 +4,10 @@
 
 This project is a commercial micro-SaaS focused on helping users manage and improve skin conditions such as cellulite through personalized treatment plans, progress tracking, and AI-assisted recommendations.
 
-## Secondary Goal
-
 The project also serves as a professional engineering laboratory for learning and applying modern software architecture, cloud-native patterns, messaging systems, documentation practices, and AI-assisted development workflows.
+
+## One-sentence summary
+Main goal is to build a real, sellable skin-treatment micro-SaaS while simultaneously using it as a professional engineering laboratory to master modern software architecture, cloud-native patterns, messaging systems, documentation practices, and AI-assisted development workflows, all while maintaining low operational costs and creating a strong portfolio for senior-level opportunities.
 
 ## Core Principles
 
