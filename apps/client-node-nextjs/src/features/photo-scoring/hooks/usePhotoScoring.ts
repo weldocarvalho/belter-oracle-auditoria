@@ -62,7 +62,7 @@ export function usePhotoScoring({ bffUrl, wsUrl, userId }: PhotoScoringConfig) {
       const tokenResponse = await fetch(`${bffUrl}/api/v1/photo-scoring/presigned-url`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, fileType: 'image/jpeg' }),
+        body: JSON.stringify({ patientId: userId, fileType: 'image/jpeg' }),
       });
       
       if (!tokenResponse.ok) throw new Error('Não foi possível autorizar o envio seguro.');
