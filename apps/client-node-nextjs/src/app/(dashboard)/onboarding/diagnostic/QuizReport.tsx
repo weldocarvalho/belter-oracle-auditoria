@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Sparkles, Activity, Droplets, AlertCircle, ArrowRight, Zap } from "lucide-react";
 import { DiagnosticData } from "./QuizTypes";
+import AuthBottomSheet from "@/app/components/AuthBottomSheet";
 
 type ReportProps = {
   formData: DiagnosticData;
@@ -155,6 +156,12 @@ export function QuizReport({ formData }: ReportProps) {
         Desbloquear Via Pix Copia e Cola
         <ArrowRight className="w-5 h-5" />
       </button>
+
+      {/* Social login Bottom Sheet */}
+      <AuthBottomSheet 
+        isOpen={false} 
+        onClose={(open) => console.log("AuthBottomSheet open state changed:", open)}
+      />
 
     </div>
   );
