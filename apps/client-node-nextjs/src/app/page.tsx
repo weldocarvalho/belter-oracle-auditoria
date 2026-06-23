@@ -9,6 +9,10 @@ export default function LandingPage() {
   
   const handleStartDiagnostic = () => {
     console.log("Analytics: Landing CTA clicked. Advancing seamlessly to Phase 2 Quiz.");
+    // In a real implementation, you might want to track this event with an analytics service like Google Analytics or Mixpanel.
+    // For example: analytics.track('Landing CTA Clicked', { source: 'Landing Page' });
+    // Navigate to the diagnostic quiz page. In a Next.js app, you might use the useRouter hook for client-side navigation,
+    // but for simplicity, we'll use window.location here.
     window.location.href = "/onboarding/diagnostic";
   };
 
