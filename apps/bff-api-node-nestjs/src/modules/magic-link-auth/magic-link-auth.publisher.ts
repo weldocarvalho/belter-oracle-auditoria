@@ -17,7 +17,7 @@ export class MagicLinkAuthPublisher implements OnModuleInit, OnModuleDestroy {
       setup: (channel: any) => {
         // Declares the full fanout exchange name matching the .NET namespace target path
         return channel.assertExchange(
-          'ServiceWorker.Application.Models:UserAuthEventRequest', 
+          'ServiceWorker.Consumers.UserAuth:UserAuthEventRequest', 
           'fanout', 
           { durable: true }
         );
@@ -28,12 +28,12 @@ export class MagicLinkAuthPublisher implements OnModuleInit, OnModuleDestroy {
   async publishAuthRequested(data: UserAuthEventRequest): Promise<void> {
     const envelope: MassTransitEnvelope<UserAuthEventRequest> = {
       message: data,
-      messageType: ['urn:message:ServiceWorker.Application.Models:UserAuthEventRequest'],
+      messageType: ['urn:message:ServiceWorker.Consumers.UserAuth:UserAuthEventRequest'],
     };
 
     // Publishes directly to the exchange. Fanout ignores the routing key parameter.
     await this.channelWrapper.publish(
-      'ServiceWorker.Application.Models:UserAuthEventRequest',
+      'ServiceWorker.Consumers.UserAuth:UserAuthEventRequest',
       '', 
       envelope,
       { contentType: 'application/vnd.masstransit+json' } 

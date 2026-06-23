@@ -26,7 +26,7 @@ export default function AuthBottomSheet({ isOpen, onClose, diagnosticData }: Aut
 
     try {
       // Direct integration into NestJS BFF
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/magic-link`, {
+      const response = await fetch(`http://localhost:3333/api/v1/auth/magic-link`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -41,6 +41,7 @@ export default function AuthBottomSheet({ isOpen, onClose, diagnosticData }: Aut
       });
 
       if (!response.ok) {
+        console.log("Magic link request failed:", response.status, response.statusText);
         throw new Error("Erro ao iniciar o envio. Tente novamente.");
       }
 

@@ -8,12 +8,23 @@ public class ServiceWorkerDbContext : DbContext
 {
     public ServiceWorkerDbContext(DbContextOptions<ServiceWorkerDbContext> options) : base(options) { }
 
+    // USER
+    public DbSet<User> Users => Set<User>();
+
+    // TREATMENT SCHEDULE
     public DbSet<TreatmentSchedule> Schedules => Set<TreatmentSchedule>();
     public DbSet<ScheduleItem> ScheduleItems => Set<ScheduleItem>();
     public DbSet<SkinAnalysisPersistancyEntity> SkinAnalyses => Set<SkinAnalysisPersistancyEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+
+        modelBuilder.Entity<User>(b =>
+        {
+            b.HasKey(u => u.Guid);
+            b.HasIndex(u => u.Email).IsUnique();
+        });
+
         modelBuilder.Entity<TreatmentSchedule>(b =>
         {
             b.HasKey(c => c.Id);

@@ -1,14 +1,20 @@
 using MassTransit;
 using MediatR;
-using Serilog;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using ServiceWorker.Domain.Services;
-using ServiceWorker.Application.Consumers;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration; 
+using Serilog;
 using ServiceWorker.Application.Commands.Handlers;
+using ServiceWorker.Application.Consumers;
+using ServiceWorker.Domain.Services;
 using ServiceWorker.Infrastructure;
+using ServiceWorker.Domain.Services.UserServiceFolder; 
+using ServiceWorker.Infrastructure.Services;          
+using System.Net.Http.Headers;
+using Amazon.SimpleEmail;
+using ServiceWorker.Consumers.UserAuth;                        
 
 var builder = Host.CreateDefaultBuilder(args)
     .UseSerilog((context, configuration) =>
@@ -30,12 +36,16 @@ var builder = Host.CreateDefaultBuilder(args)
     .ConfigureServices((context, services) =>
     {
         services.AddInfrastructure(context.Configuration);
+        
+        // Cleanly inject your production AWS SES transactional email pipeline
+        services.AddEmailInfrastructure(context.Configuration);
 
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AnalyzeSkinCommandHandler).Assembly));
 
         services.AddMassTransit(x =>
         {
             x.AddConsumer<SkinAnalysisConsumer>();
+            x.AddConsumer<UserAuthConsumer>();
 
             x.UsingRabbitMq((context, cfg) =>
             {
@@ -45,8 +55,6 @@ var builder = Host.CreateDefaultBuilder(args)
                 logger.LogInformation("Environment = {EnvironmentName}", environment.EnvironmentName);
                 logger.LogDebug("UsingRabbitMq context type: {ContextType}", context.GetType().FullName);
 
-                // Se a variável de ambiente existir (ex: em produção/Docker), usa ela.
-                // Caso contrário, lê a seção do appsettings.json
                 var rabbitMqUri = Environment.GetEnvironmentVariable("RABBITMQ_URI");
 
                 if (!string.IsNullOrEmpty(rabbitMqUri))
@@ -56,8 +64,7 @@ var builder = Host.CreateDefaultBuilder(args)
                 }
                 else
                 {
-                    // Busca os dados estruturados do seu appsettings.json
-                    var rabbitSettings = context.GetRequiredService<Microsoft.Extensions.Configuration.IConfiguration>().GetSection("RabbitMQ");
+                    var rabbitSettings = context.GetRequiredService<IConfiguration>().GetSection("RabbitMQ");
                     var rabbitHost = rabbitSettings["Host"] ?? "localhost";
                     var rabbitUsername = rabbitSettings["Username"] ?? "guest";
 
@@ -111,3 +118,63 @@ public class WorkerService : BackgroundService
         await base.StopAsync(cancellationToken);
     }
 }
+
+#region Infrastructure Service Extensions
+public static class EmailInfrastructureExtensions
+{
+    /// <summary>
+    /// Registers the low-cost AWS SES provider, domain user services, and native SDK dependencies.
+    /// </summary>
+    public static IServiceCollection AddEmailInfrastructure(this IServiceCollection services, IConfiguration configuration)
+    {
+        // 1. Core Authentication Mail Pipeline Registrations
+        services.AddScoped<IMagicLinkEmailService, MagicLinkEmailService>();
+        services.AddScoped<IEmailNotificationProvider, AwsSesEmailProvider>();
+
+        // 2. Explicitly map your Domain Service Interface to its repository implementation
+        services.AddScoped<IUserService, ServiceWorker.Infrastructure.Repositories.UserRepoFolder.UserRepository>();
+
+        // 3. MANUAL OVERRIDE FIX: Parse keys directly to stop automatic system profile searching loops
+        var awsSection = configuration.GetSection("AWS");
+        
+        var accessKey = awsSection["AccessKey"] ?? throw new InvalidOperationException("AWS:AccessKey is missing.");
+        var secretKey = awsSection["SecretKey"] ?? throw new InvalidOperationException("AWS:SecretKey is missing.");
+        var regionName = awsSection["Region"] ?? "us-east-1";
+
+        var region = Amazon.RegionEndpoint.GetBySystemName(regionName);
+        var credentials = new Amazon.Runtime.BasicAWSCredentials(accessKey, secretKey);
+
+        // Explicitly instantiate and inject the service instance as a Singleton to optimize execution lifecycle
+        var sesClient = new Amazon.SimpleEmail.AmazonSimpleEmailServiceClient(credentials, region);
+        services.AddSingleton<IAmazonSimpleEmailService>(sesClient);
+
+        return services;
+    }
+}
+
+// public static class EmailInfrastructureExtensions
+// {
+//     /// <summary>
+//     /// Registers the low-cost Resend provider and typed HTTP Client setups for async email dispatching.
+//     /// </summary>
+//     public static IServiceCollection AddEmailInfrastructure(this IServiceCollection services, IConfiguration configuration)
+//     {
+//         services.AddScoped<IMagicLinkEmailService, MagicLinkEmailService>();
+
+//         // Optimized typed HttpClient setup leveraging connection pooling
+//         services.AddHttpClient<IEmailNotificationProvider, ResendEmailProvider>(client =>
+//         {
+//             client.BaseAddress = new Uri("https://resend.com");
+            
+//             var apiKey = configuration["Resend:ApiKey"] 
+//                 ?? throw new InvalidOperationException("Resend API Key configuration is missing.");
+                
+//             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+//             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+//         });
+
+//         return services;
+//     }
+// }
+
+#endregion
