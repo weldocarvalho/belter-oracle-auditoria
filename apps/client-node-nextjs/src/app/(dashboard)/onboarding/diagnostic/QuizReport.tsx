@@ -157,10 +157,11 @@ export function QuizReport({ formData }: ReportProps) {
         <ArrowRight className="w-5 h-5" />
       </button>
 
-      {/* Social login Bottom Sheet */}
+      {/* Magic link Bottom Sheet */}
       <AuthBottomSheet 
         isOpen={false} 
         onClose={(open) => console.log("AuthBottomSheet open state changed:", open)}
+        diagnosticData={formData}
       />
 
     </div>
