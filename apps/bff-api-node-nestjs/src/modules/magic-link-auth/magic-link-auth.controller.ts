@@ -17,17 +17,19 @@ interface MagicLinkRequestDto {
   };
 }
 
-@Controller('api/v1/auth')
+@Controller('api/v1/auth') // BASE http://localhost:3333/api/v1/auth
 export class MagicLinkAuthController {
   // Inject the publisher and the new service layer
   constructor(
-    private readonly authPublisher: MagicLinkAuthPublisher,
-    private readonly authService: MagicLinkAuthService
+    private readonly authPublisher: MagicLinkAuthPublisher
+    // private readonly authService: MagicLinkAuthService
   ) {}
 
   @Post('magic-link')
   @HttpCode(HttpStatus.ACCEPTED) // Returns 202 Accepted status for optimal frontend responsiveness
   async requestMagicLink(@Body() payload: MagicLinkRequestDto) {
+    console.log('Received magic link request for email:', payload.email);
+
     // Generates a cryptographically secure token for verification lookup validation matches
     const secureToken = randomBytes(32).toString('hex');
     
@@ -48,22 +50,22 @@ export class MagicLinkAuthController {
     return { status: 'queued' };
   }
 
-  @Get('verify')
-  @HttpCode(HttpStatus.OK)
-  async verifyMagicLink(@Query('token') token: string) {
-    if (!token) {
-      throw new UnauthorizedException('Token de autenticação ausente.');
-    }
+  // @Get('verify')
+  // @HttpCode(HttpStatus.OK)
+  // async verifyMagicLink(@Query('token') token: string) {
+  //   if (!token) {
+  //     throw new UnauthorizedException('Token de autenticação ausente.');
+  //   }
 
-    // Process token validation and immediate consumption
-    const userSession = await this.authService.validateAndConsumeToken(token);
+  //   // Process token validation and immediate consumption
+  //   const userSession = await this.authService.validateAndConsumeToken(token);
     
-    // Return session data + JWT back to Next.js route handler
-    return {
-      statusCode: HttpStatus.OK,
-      email: userSession.email,
-      userId: userSession.userId,
-      token: userSession.jwtToken
-    };
-  }
+  //   // Return session data + JWT back to Next.js route handler
+  //   return {
+  //     statusCode: HttpStatus.OK,
+  //     email: userSession.email,
+  //     userId: userSession.userId,
+  //     token: userSession.jwtToken
+  //   };
+  // }
 }
