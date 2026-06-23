@@ -2,51 +2,75 @@
 
 import React, { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { Mail, Loader2, X } from "lucide-react";
+import { Mail, Loader2, X, CheckCircle2 } from "lucide-react";
+import { DiagnosticData } from "../(dashboard)/onboarding/diagnostic/QuizTypes";
 
 interface AuthBottomSheetProps {
   isOpen: boolean;
   onClose: (open: boolean) => void;
+  diagnosticData: DiagnosticData;
 }
 
-export default function AuthBottomSheet({ isOpen, onClose }: AuthBottomSheetProps) {
+export default function AuthBottomSheet({ isOpen, onClose, diagnosticData }: AuthBottomSheetProps) {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleMagicLinkSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
 
     setIsLoading(true);
-    console.log("BFF Handshake initialized for lead:", email);
-    
-    // Simulate low-latency BFF roundtrip
-    setTimeout(() => {
+    setErrorMessage(null);
+
+    try {
+      // Direct integration into NestJS BFF
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/magic-link`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          diagnostic: {
+            assessmentType: diagnosticData.assessmentType,
+            manualSelectedGrade: diagnosticData.manualSelectedGrade,
+            waterIntake: diagnosticData.waterIntake,
+            circulationProfile: diagnosticData.circulationProfile,
+          }
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Erro ao iniciar o envio. Tente novamente.");
+      }
+
+      setIsSuccess(true);
+    } catch (err: any) {
+      setErrorMessage(err.message || "Erro de conexão com o servidor.");
+    } finally {
       setIsLoading(false);
-      window.location.href = "/onboarding/diagnostic";
-    }, 1200);
+    }
   };
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
-        {/* Backdrop overlay utilizing micro-blur */}
         <Dialog.Overlay className="fixed inset-0 bg-foreground/20 backdrop-blur-xs z-50 animate-fade-in" />
         
-        {/* Mobile Bottom Sheet Container */}
         <Dialog.Content className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-background rounded-t-2xl p-6 pb-8 space-y-5 border-t border-border shadow-xl z-50 outline-hidden transform transition-transform animate-slide-up duration-300">
           
-          {/* Subtle Mobile Drag Indicator Pill */}
           <div className="w-12 h-1 bg-secondary mx-auto rounded-full -mt-2" />
 
-          {/* Header Layout */}
+          {/* Header */}
           <div className="flex justify-between items-start pt-2">
             <div className="space-y-1">
               <Dialog.Title className="text-lg font-extrabold text-foreground tracking-tight">
-                Comece seu diagnóstico grátis
+                {!isSuccess ? "Desbloqueie seu Cronograma" : "Verifique seu e-mail"}
               </Dialog.Title>
               <Dialog.Description className="text-xs text-muted-foreground font-medium">
-                Entre em segundos para salvar seu progresso.
+                {!isSuccess 
+                  ? "Insira seu e-mail para salvar seu diagnóstico e prosseguir para o pagamento seguro via Pix."
+                  : "Enviamos um link de login único e seguro para o seu endereço de e-mail."}
               </Dialog.Description>
             </div>
             
@@ -57,65 +81,60 @@ export default function AuthBottomSheet({ isOpen, onClose }: AuthBottomSheetProp
             </Dialog.Close>
           </div>
 
-          {/* Streamlined One-Tap Google Authentication Layer */}
-          <div className="pt-1">
-            <button
-              type="button"
-              onClick={() => console.log("Init Google OAuth")}
-              className="w-full flex items-center justify-center gap-3 bg-secondary/30 hover:bg-secondary/50 border border-secondary/60 text-foreground font-bold text-sm py-4 px-4 rounded-xl transition-all active:scale-[0.99]"
-            >
-              {/* Lean Custom Google SVG Logo */}
-              <svg className="w-4 h-4 text-foreground/80 fill-current shrink-0" viewBox="0 0 24 24">
-                <path d="M12.24 10.285V13.4h6.887c-.275 1.565-1.88 4.604-6.887 4.604-4.33 0-7.866-3.577-7.866-8s3.536-8 7.866-8c2.46 0 4.105 1.025 5.047 1.926l2.427-2.334C17.955 2.192 15.34 1 12.24 1 5.48 1 0 6.48 0 13.24s5.48 12.24 12.24 12.24c7.055 0 11.75-4.945 11.75-11.935 0-.805-.085-1.42-.19-1.925H12.24z"/>
-              </svg>
-              Entrar com o Google
-            </button>
-          </div>
+          {!isSuccess ? (
+            /* Email Request Form Layout */
+            <form onSubmit={handleMagicLinkSubmit} className="space-y-4 pt-2">
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
+                <input
+                  type="email"
+                  required
+                  placeholder="seu.email@exemplo.com.br"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isLoading}
+                  className="w-full bg-secondary/10 border border-border/80 focus:border-ring rounded-xl py-3.5 pl-10 pr-4 text-sm font-medium text-foreground placeholder:text-muted-foreground/50 transition-colors outline-hidden disabled:opacity-60"
+                />
+              </div>
 
-          {/* Visual Text Divider */}
-          <div className="relative flex items-center justify-center py-1">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border/60"></div>
-            </div>
-            <span className="relative bg-background px-3 text-[10px] font-extrabold text-muted-foreground/60 tracking-wider uppercase">
-              Ou use seu e-mail
-            </span>
-          </div>
-
-          {/* Passwordless Email Ingestion Form */}
-          <form onSubmit={handleMagicLinkSubmit} className="space-y-4">
-            <div className="relative">
-              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
-              <input
-                type="email"
-                required
-                placeholder="seu.email@exemplo.com.br"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isLoading}
-                className="w-full bg-secondary/10 border border-border/80 focus:border-ring rounded-xl py-3.5 pl-10 pr-4 text-sm font-medium text-foreground placeholder:text-muted-foreground/50 transition-colors outline-hidden disabled:opacity-60"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-accent text-accent-foreground font-bold text-sm py-4 rounded-xl flex items-center justify-center gap-2 shadow-sm hover:opacity-95 active:scale-[0.99] transition-all disabled:opacity-80"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Enviando link de acesso...
-                </>
-              ) : (
-                "Continuar para o Diagnóstico"
+              {errorMessage && (
+                <p className="text-xs text-destructive font-semibold bg-destructive/10 p-2.5 rounded-lg text-center">
+                  {errorMessage}
+                </p>
               )}
-            </button>
-          </form>
 
-          {/* Strict LGPD Sensitive Health Privacy Notice */}
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-accent text-accent-foreground font-bold text-sm py-4 rounded-xl flex items-center justify-center gap-2 shadow-sm hover:opacity-95 active:scale-[0.99] transition-all disabled:opacity-80"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Enviando link de acesso...
+                  </>
+                ) : (
+                  "Gerar Acesso & Ir para Pix"
+                )}
+              </button>
+            </form>
+          ) : (
+            /* Success Feedback Layout (Keeps user on app while waiting for email delivery) */
+            <div className="flex flex-col items-center justify-center py-6 text-center space-y-3 animate-fade-in">
+              <div className="bg-primary/20 p-3 rounded-full">
+                <CheckCircle2 className="w-8 h-8 text-foreground" />
+              </div>
+              <div className="space-y-1 px-4">
+                <p className="text-sm font-bold text-foreground">Link Enviado para <span className="underline">{email}</span></p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Clique no link dentro do e-mail usando este mesmo dispositivo. Ele vai validar seu perfil e abrir o Pix automaticamente.
+                </p>
+              </div>
+            </div>
+          )}
+
           <p className="text-[10px] text-center text-muted-foreground/80 leading-normal font-medium px-4 pt-1">
-            Ao continuar, você concorda com nossos termos. Seus dados cadastrais e respostas são estritamente confidenciais e protegidos sob a LGPD.
+            Ao continuar, você concorda explicitamente com o processamento de dados confidenciais de saúde para fins de diagnóstico personalizado, em total conformidade com a LGPD brasileira.
           </p>
 
         </Dialog.Content>
