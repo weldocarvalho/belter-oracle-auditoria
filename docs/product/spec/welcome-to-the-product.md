@@ -28,7 +28,7 @@ A personalized, structured, and clinically backed routine that replaces guesswor
 A lean, highly visual system focused entirely on assessment, planning, and progress tracking:
 1.  **AI Photo-Scoring:** User uploads a localized photo. The AI categorizes the cellulite grade (Grade 1 to 4) using computer vision.
 2.  **Dynamic Protocol Generator:** A .NET worker processes the assessment vectors and delivers a structured 4-week calendar.
-3.  **Before/After Visual Vault:** A secure storage interface (S3/R2) optimized for comparing skin texture improvements side-by-side.
+3.  **Before/After Visual Vault:** A secure storage interface (S3) optimized for comparing skin texture improvements side-by-side.
 
 ### What should be out of scope at this moment?
 *   **Custom Video Workouts:** Do not stream video. Use simple, clean GIFs/animations for exercises or massage techniques to save bandwidth and development time.
@@ -48,7 +48,7 @@ A lean, highly visual system focused entirely on assessment, planning, and progr
 *   **Brazilian Product Catalog Ingestion:** Populate your PostgreSQL DB with a clean vector index of popular, accessible Brazilian skincare brands (e.g., Creamy, Principia, Sallve, Natura, O Boticário) so the AI suggests realistic local options.
 
 ### Software Engineering & Architecture (Low-Cost Focus)
-*   **Event-Driven Photo Processing:** Next.js uploads the photo directly to R2. NestJS emits a `PhotoUploaded` event to RabbitMQ. The .NET Worker picks it up, runs the asynchronous AI scoring, caches the result in Redis, and pushes a notification back to the client via WebSockets. This keeps your API snappy and your server bills incredibly low.
+*   **Event-Driven Photo Processing:** Next.js uploads the photo directly to S3. NestJS emits a `PhotoUploaded` event to RabbitMQ. The .NET Worker picks it up, runs the asynchronous AI scoring, caches the result in Redis, and pushes a notification back to the client via WebSockets. This keeps your API snappy and your server bills incredibly low.
 
 ---
 

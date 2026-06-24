@@ -17,32 +17,64 @@ public class ServiceWorkerDbContext : DbContext
     public DbSet<SkinAnalysisPersistancyEntity> SkinAnalyses => Set<SkinAnalysisPersistancyEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    modelBuilder.Entity<User>(b =>
     {
+        // Primary Key & Indexes
+        b.HasKey(u => u.Guid);
+        b.HasIndex(u => u.Email).IsUnique();
 
-        modelBuilder.Entity<User>(b =>
-        {
-            b.HasKey(u => u.Guid);
-            b.HasIndex(u => u.Email).IsUnique();
-        });
+        // Structural Constraints
+        b.Property(u => u.Email)
+         .HasMaxLength(255)
+         .IsRequired();
 
-        modelBuilder.Entity<TreatmentSchedule>(b =>
-        {
-            b.HasKey(c => c.Id);
-            b.HasMany(c => c.Items)
-             .WithOne()
-             .HasForeignKey("ScheduleId")
-             .OnDelete(DeleteBehavior.Cascade);
-        });
+        b.Property(u => u.SubscriptionStatus)
+         .HasMaxLength(50)
+         .IsRequired();
 
-        modelBuilder.Entity<SkinAnalysisPersistancyEntity>(b =>
-        {
-            b.HasKey(e => e.AnalysisId);
-            b.Property(e => e.ConditionsJson)
-                .HasColumnType("jsonb")
-                .IsRequired();
-            b.Property(e => e.RecommendationsJson)
-                .HasColumnType("jsonb")
-                .IsRequired();
-        });
-    }
+        b.Property(u => u.PixCustomerId)
+         .HasMaxLength(100)
+         .IsRequired(false);
+
+        // Advanced Postgres Columns Maps
+        b.Property(u => u.LPQuizDiagnosticJson)
+         .HasColumnType("jsonb")
+         .IsRequired();
+
+        // Timezone management for accurate LGPD auditing and timestamps
+        b.Property(u => u.LgpdConsentTimestamp)
+         .HasColumnType("timestamp with time zone")
+         .IsRequired();
+
+        b.Property(u => u.CreatedAt)
+         .HasColumnType("timestamp with time zone")
+         .IsRequired();
+
+        b.Property(u => u.UpdatedAt)
+         .HasColumnType("timestamp with time zone")
+         .IsRequired();
+    });
+
+    modelBuilder.Entity<TreatmentSchedule>(b =>
+    {
+        b.HasKey(c => c.Id);
+        b.HasMany(c => c.Items)
+         .WithOne()
+         .HasForeignKey("ScheduleId")
+         .OnDelete(DeleteBehavior.Cascade);
+    });
+
+    modelBuilder.Entity<SkinAnalysisPersistancyEntity>(b =>
+    {
+        b.HasKey(e => e.AnalysisId);
+        b.Property(e => e.ConditionsJson)
+            .HasColumnType("jsonb")
+            .IsRequired();
+        b.Property(e => e.RecommendationsJson)
+            .HasColumnType("jsonb")
+            .IsRequired();
+    });
+}
+
 }
