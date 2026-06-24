@@ -1,16 +1,16 @@
 using MassTransit;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using ServiceWorker.Application.Contexts.UserAppFolder;
+using ServiceWorker.Application.Cases.Users.Commands.CreateUser;
 
-namespace ServiceWorker.Consumers.UserAuth;
+namespace ServiceWorker.Consumers.CreateUser;
 
-public class UserAuthConsumer(IMediator mediator, ILogger<UserAuthConsumer> logger) : IConsumer<UserAuthEventRequest>
+public class CreateUserConsumer(IMediator mediator, ILogger<CreateUserConsumer> logger) : IConsumer<CreateUserEventRequest>
 {
     private readonly IMediator _mediator = mediator;
-    private readonly ILogger<UserAuthConsumer> _logger = logger;
+    private readonly ILogger<CreateUserConsumer> _logger = logger;
 
-    public async Task Consume(ConsumeContext<UserAuthEventRequest> context)
+    public async Task Consume(ConsumeContext<CreateUserEventRequest> context)
     {
         var message = context.Message;
 

@@ -1,18 +1,19 @@
+using ServiceWorker.Application.Interfaces.Persistence;
 using ServiceWorker.Infrastructure.Data;
 using ServiceWorker.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using ServiceWorker.Domain.Services.UserServiceFolder;
 
-namespace ServiceWorker.Infrastructure.Repositories.UserRepoFolder;
+namespace ServiceWorker.Infrastructure.Repositories.EFCore;
 
-public class UserRepository(ServiceWorkerDbContext dbContext): IUserService
+public class UserRepository(ServiceWorkerDbContext dbContext) : IUserRepository
 {
     private readonly ServiceWorkerDbContext _dbContext = dbContext;
 
     public async Task<bool> CreateUserAsync(User user, CancellationToken cancellationToken = default)
     {
         // _dbContext.Users.Add(user);
-        // await _dbContext.SaveChangesAsync(cancellationToken);
+        // var entries = await _dbContext.SaveChangesAsync(cancellationToken);
+        // return entries > 0;
         return true;
     }
 

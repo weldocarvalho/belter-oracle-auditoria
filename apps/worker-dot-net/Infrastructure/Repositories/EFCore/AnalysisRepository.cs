@@ -3,13 +3,13 @@ using ServiceWorker.Domain.Services;
 using ServiceWorker.Infrastructure.Data;
 using ServiceWorker.Infrastructure.PersistancyEntities;
 
-namespace ServiceWorker.Infrastructure.Repositories;
+namespace ServiceWorker.Infrastructure.Repositories.EFCore;
 
-public class EfAnalysisRepository : IAnalysisRepository
+public class AnalysisRepository : IAnalysisRepository
 {
     private readonly ServiceWorkerDbContext _dbContext;
 
-    public EfAnalysisRepository(ServiceWorkerDbContext dbContext)
+    public AnalysisRepository(ServiceWorkerDbContext dbContext)
     {
         _dbContext = dbContext;
     }

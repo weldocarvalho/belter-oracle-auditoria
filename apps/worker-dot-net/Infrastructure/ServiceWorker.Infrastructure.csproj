@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../Domain/ServiceWorker.Domain.csproj" />
+    <ProjectReference Include="../Application/ServiceWorker.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>

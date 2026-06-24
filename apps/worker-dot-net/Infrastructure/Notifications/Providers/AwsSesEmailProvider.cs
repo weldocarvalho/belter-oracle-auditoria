@@ -2,9 +2,9 @@ using Amazon.SimpleEmail;
 using Amazon.SimpleEmail.Model;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using ServiceWorker.Domain.Services.UserServiceFolder;
+using ServiceWorker.Application.Interfaces.Infrastructure;
 
-namespace ServiceWorker.Infrastructure.Services;
+namespace ServiceWorker.Infrastructure.Notifications.Providers;
 
 public class AwsSesEmailProvider : IEmailNotificationProvider
 {

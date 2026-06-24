@@ -1,11 +1,9 @@
-using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using EFCore.NamingConventions;
 using ServiceWorker.Domain.Services;
 using ServiceWorker.Infrastructure.Data;
-using ServiceWorker.Infrastructure.Repositories;
+using ServiceWorker.Infrastructure.Repositories.EFCore;
 using ServiceWorker.Infrastructure.Services;
 
 namespace ServiceWorker.Infrastructure;
@@ -20,7 +18,9 @@ public static class ServiceCollectionExtensions
             options.UseNpgsql(connectionString)
                    .UseSnakeCaseNamingConvention());
 
-        services.AddScoped<IAnalysisRepository, EfAnalysisRepository>();
+        // services.AddScoped<IUserRepository, UserRepository>();
+
+        services.AddScoped<IAnalysisRepository, AnalysisRepository>();
 
         services.AddScoped<IImageProcessorService, MockImageProcessorService>();
         services.AddScoped<ISkinAnalysisService, MockSkinAnalysisService>();
@@ -39,7 +39,8 @@ public static class ServiceCollectionExtensions
         connectionString = configuration.GetSection("Database")["ConnectionString"];
         if (string.IsNullOrWhiteSpace(connectionString))
         {
-            throw new InvalidOperationException("Database connection string is not configured. Configure Database:ConnectionString or DATABASE_CONNECTIONSTRING.");
+            throw new InvalidOperationException
+                ("Database connection string is not configured. Configure Database:ConnectionString or DATABASE_CONNECTIONSTRING.");
         }
 
         return connectionString;

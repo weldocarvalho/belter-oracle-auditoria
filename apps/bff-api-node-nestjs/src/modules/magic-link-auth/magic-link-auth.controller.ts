@@ -2,7 +2,7 @@
 import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { randomBytes } from 'crypto';
 import { MagicLinkAuthPublisher } from './magic-link-auth.publisher'; 
-import { UserAuthEventRequest } from './magic-link-auth.contracts';
+import { CreateUserEventRequest } from './magic-link-auth.contracts';
 import { Get, Query, UnauthorizedException } from '@nestjs/common';
 import type { MagicLinkAuthService } from './magic-link-auth.service';
 //import { MagicLinkAuthService } from './magic-link-auth.service';
@@ -34,7 +34,7 @@ export class MagicLinkAuthController {
     const secureToken = randomBytes(32).toString('hex');
     
     // Maps the incoming DTO properties to the required C# contract schema fields
-    const eventPayload: UserAuthEventRequest = {
+    const eventPayload: CreateUserEventRequest = {
       email: payload.email.trim().toLowerCase(),
       token: secureToken,
       assessmentType: payload.diagnostic.assessmentType,

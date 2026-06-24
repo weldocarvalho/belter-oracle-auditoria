@@ -159,7 +159,7 @@ export function QuizReport({ formData }: ReportProps) {
 
       {/* Magic link Bottom Sheet */}
       <AuthBottomSheet 
-        isOpen={false} 
+        isOpen={true} 
         onClose={(open) => console.log("AuthBottomSheet open state changed:", open)}
         diagnosticData={formData}
       />
