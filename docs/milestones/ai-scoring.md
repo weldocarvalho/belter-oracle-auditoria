@@ -19,12 +19,12 @@
 
 ### Epic 2: NestJS BFF Secure Storage Gateway
 *Objective: Implement the secure handshake protocol allowing clients to fetch authorization credentials.*
-- [ ] **Controller Layer**: Define `POST /api/v1/photos/presigned-url` endpoint validating payload constraints (`userId`, `fileType`).
-- [ ] **Service Layer (Cloudflare R2 Integration)**:
+- [x] **Controller Layer**: Define `POST /api/v1/photos/presigned-url` endpoint validating payload constraints (`userId`, `fileType`).
+- [x] **Service Layer (Cloudflare R2 Integration)**:
   - Install `@aws-sdk/client-s3` and `@aws-sdk/s3-request-presigner` inside NestJS.
   - Implement S3 client connection mapping to your Cloudflare R2 bucket endpoint.
   - Write `getSignedUrl` wrapper with a 60-second expiration limit using deterministic, UUID-based `fileKey` paths (e.g., `uploads/{userId}/{uuid}.jpg`).
-- [ ] **CORS Configuration**: Configure Cloudflare R2 bucket policies to explicitly accept `PUT` verbs from `http://localhost:3000`.
+- [x] **CORS Configuration**: Configure Cloudflare R2 bucket policies to explicitly accept `PUT` verbs from `http://localhost:3000`.
 
 ### Epic 3: Messaging Foundations (NestJS ➔ RabbitMQ)
 *Objective: Offload heavy data orchestration smoothly out-of-band.*
