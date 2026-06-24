@@ -1,7 +1,7 @@
 // magic-link-auth.publisher.ts
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import amqp, { AmqpConnectionManager, ChannelWrapper } from 'amqp-connection-manager';
-import { MassTransitEnvelope, UserAuthEventRequest } from './magic-link-auth.contracts';
+import { MassTransitEnvelope, CreateUserEventRequest } from './magic-link-auth.contracts';
 
 @Injectable()
 export class MagicLinkAuthPublisher implements OnModuleInit, OnModuleDestroy {
@@ -17,7 +17,7 @@ export class MagicLinkAuthPublisher implements OnModuleInit, OnModuleDestroy {
       setup: (channel: any) => {
         // Declares the full fanout exchange name matching the .NET namespace target path
         return channel.assertExchange(
-          'ServiceWorker.Consumers.UserAuth:UserAuthEventRequest', 
+          'ServiceWorker.Consumers.CreateUser:CreateUserEventRequest', 
           'fanout', 
           { durable: true }
         );
@@ -25,15 +25,15 @@ export class MagicLinkAuthPublisher implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-  async publishAuthRequested(data: UserAuthEventRequest): Promise<void> {
-    const envelope: MassTransitEnvelope<UserAuthEventRequest> = {
+  async publishAuthRequested(data: CreateUserEventRequest): Promise<void> {
+    const envelope: MassTransitEnvelope<CreateUserEventRequest> = {
       message: data,
-      messageType: ['urn:message:ServiceWorker.Consumers.UserAuth:UserAuthEventRequest'],
+      messageType: ['urn:message:ServiceWorker.Consumers.CreateUser:CreateUserEventRequest'],
     };
 
     // Publishes directly to the exchange. Fanout ignores the routing key parameter.
     await this.channelWrapper.publish(
-      'ServiceWorker.Consumers.UserAuth:UserAuthEventRequest',
+      'ServiceWorker.Consumers.CreateUser:CreateUserEventRequest',
       '', 
       envelope,
       { contentType: 'application/vnd.masstransit+json' } 

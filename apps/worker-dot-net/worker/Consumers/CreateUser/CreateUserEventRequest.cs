@@ -1,9 +1,9 @@
-namespace ServiceWorker.Consumers.UserAuth;
+namespace ServiceWorker.Consumers.CreateUser;
 
 /// <summary>
 /// This interface/record represents the contract coming from your NestJS BFF via RabbitMQ.
 /// </summary>
-public record UserAuthEventRequest
+public record CreateUserEventRequest
 {
     public string Email { get; init; } = default!;
     public string Token { get; init; } = default!;

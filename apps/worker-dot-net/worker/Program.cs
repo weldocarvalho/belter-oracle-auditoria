@@ -1,20 +1,19 @@
+using Amazon.SimpleEmail;
 using MassTransit;
-using MediatR;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Configuration; 
 using Serilog;
 using ServiceWorker.Application.Commands.Handlers;
 using ServiceWorker.Application.Consumers;
-using ServiceWorker.Domain.Services;
+using ServiceWorker.Application.Interfaces.Persistence;
+using ServiceWorker.Application.Interfaces.Infrastructure;
+using ServiceWorker.Consumers.CreateUser;
 using ServiceWorker.Infrastructure;
-using ServiceWorker.Domain.Services.UserServiceFolder; 
-using ServiceWorker.Infrastructure.Services;          
-using System.Net.Http.Headers;
-using Amazon.SimpleEmail;
-using ServiceWorker.Consumers.UserAuth;                        
+using ServiceWorker.Infrastructure.Notifications.Providers;
+using ServiceWorker.Infrastructure.Notifications.Services;
+using ServiceWorker.Infrastructure.Repositories.EFCore;
 
 var builder = Host.CreateDefaultBuilder(args)
     .UseSerilog((context, configuration) =>
@@ -36,7 +35,7 @@ var builder = Host.CreateDefaultBuilder(args)
     .ConfigureServices((context, services) =>
     {
         services.AddInfrastructure(context.Configuration);
-        
+
         // Cleanly inject your production AWS SES transactional email pipeline
         services.AddEmailInfrastructure(context.Configuration);
 
@@ -45,7 +44,7 @@ var builder = Host.CreateDefaultBuilder(args)
         services.AddMassTransit(x =>
         {
             x.AddConsumer<SkinAnalysisConsumer>();
-            x.AddConsumer<UserAuthConsumer>();
+            x.AddConsumer<CreateUserConsumer>();
 
             x.UsingRabbitMq((context, cfg) =>
             {
@@ -132,11 +131,11 @@ public static class EmailInfrastructureExtensions
         services.AddScoped<IEmailNotificationProvider, AwsSesEmailProvider>();
 
         // 2. Explicitly map your Domain Service Interface to its repository implementation
-        services.AddScoped<IUserService, ServiceWorker.Infrastructure.Repositories.UserRepoFolder.UserRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
 
         // 3. MANUAL OVERRIDE FIX: Parse keys directly to stop automatic system profile searching loops
         var awsSection = configuration.GetSection("AWS");
-        
+
         var accessKey = awsSection["AccessKey"] ?? throw new InvalidOperationException("AWS:AccessKey is missing.");
         var secretKey = awsSection["SecretKey"] ?? throw new InvalidOperationException("AWS:SecretKey is missing.");
         var regionName = awsSection["Region"] ?? "us-east-1";
@@ -151,30 +150,5 @@ public static class EmailInfrastructureExtensions
         return services;
     }
 }
-
-// public static class EmailInfrastructureExtensions
-// {
-//     /// <summary>
-//     /// Registers the low-cost Resend provider and typed HTTP Client setups for async email dispatching.
-//     /// </summary>
-//     public static IServiceCollection AddEmailInfrastructure(this IServiceCollection services, IConfiguration configuration)
-//     {
-//         services.AddScoped<IMagicLinkEmailService, MagicLinkEmailService>();
-
-//         // Optimized typed HttpClient setup leveraging connection pooling
-//         services.AddHttpClient<IEmailNotificationProvider, ResendEmailProvider>(client =>
-//         {
-//             client.BaseAddress = new Uri("https://resend.com");
-            
-//             var apiKey = configuration["Resend:ApiKey"] 
-//                 ?? throw new InvalidOperationException("Resend API Key configuration is missing.");
-                
-//             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
-//             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-//         });
-
-//         return services;
-//     }
-// }
 
 #endregion

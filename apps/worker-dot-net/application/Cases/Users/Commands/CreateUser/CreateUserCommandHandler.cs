@@ -1,22 +1,23 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
+using ServiceWorker.Application.Interfaces.Infrastructure;
+using ServiceWorker.Application.Interfaces.Persistence;
 using ServiceWorker.Domain.Entities;
-using ServiceWorker.Domain.Services.UserServiceFolder;
 
-namespace ServiceWorker.Application.Contexts.UserAppFolder;
+namespace ServiceWorker.Application.Cases.Users.Commands.CreateUser;
 
 public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, CreateUserCommandResult>
 {
-    private readonly IUserService _userService;
+    private readonly IUserRepository _userRepository;
     private readonly IMagicLinkEmailService _emailService;
     private readonly ILogger<CreateUserCommandHandler> _logger;
 
     public CreateUserCommandHandler(
-        IUserService userService,
+        IUserRepository userRepository,
         IMagicLinkEmailService emailService,
         ILogger<CreateUserCommandHandler> logger)
     {
-        _userService = userService;
+        _userRepository = userRepository;
         _emailService = emailService;
         _logger = logger;
     }
@@ -28,7 +29,7 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Creat
         try
         {
             bool isNewUser = false;
-            var existingUser = await _userService.GetUserByEmailAsync(request.Email, cancellationToken);
+            var existingUser = await _userRepository.GetUserByEmailAsync(request.Email, cancellationToken);
 
             // Map inputs directly to our schema-less Domain Value Object
             var inputProfile = new LPQuizDiagnostic(
@@ -42,7 +43,7 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Creat
             {
                 isNewUser = true;
                 var newUser = new User(request.Email, inputProfile);
-                await _userService.CreateUserAsync(newUser, cancellationToken);
+                await _userRepository.CreateUserAsync(newUser, cancellationToken);
                 _logger.LogInformation("Successfully persisted new user profile with JSON payload to PostgreSQL for {Email}.", request.Email);
             }
 

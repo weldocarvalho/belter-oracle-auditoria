@@ -4,7 +4,7 @@ export interface MassTransitEnvelope<T> {
   messageType: string[];
 }
 
-export interface UserAuthEventRequest {
+export interface CreateUserEventRequest {
   email: string;
   token: string;
   assessmentType: string;
