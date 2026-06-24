@@ -39,7 +39,7 @@ Cache:
 - Redis
 
 Storage:
-- S3 / Cloudflare R2
+- S3
 
 ## Development Philosophy
 
