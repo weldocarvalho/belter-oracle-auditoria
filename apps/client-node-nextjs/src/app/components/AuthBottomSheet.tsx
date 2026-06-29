@@ -26,7 +26,7 @@ export default function AuthBottomSheet({ isOpen, onClose, diagnosticData }: Aut
 
     try {
       // Direct integration into NestJS BFF
-      const response = await fetch(`http://localhost:3333/api/v1/auth/magic-link`, {
+      const response = await fetch(`http://skin-saas-bff-alb-2007244738.us-east-1.elb.amazonaws.com/api/v1/auth/magic-link`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -1,24 +1,24 @@
 services:
-  rabbitmq:
-    image: rabbitmq:3.13-management-alpine
-    container_name: serviceworker-rabbitmq
-    hostname: rabbitmq
-    ports:
-      - "5672:5672"      # AMQP port
-      - "15672:15672"    # Management UI
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 40s
-    networks:
-      - serviceworker
+  # rabbitmq:
+  #   image: rabbitmq:3.13-management-alpine
+  #   container_name: serviceworker-rabbitmq
+  #   hostname: rabbitmq
+  #   ports:
+  #     - "5672:5672"      # AMQP port
+  #     - "15672:15672"    # Management UI
+  #   environment:
+  #     RABBITMQ_DEFAULT_USER: guest
+  #     RABBITMQ_DEFAULT_PASS: guest
+  #   volumes:
+  #     - rabbitmq_data:/var/lib/rabbitmq
+  #   healthcheck:
+  #     test: ["CMD", "rabbitmq-diagnostics", "ping"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 5
+  #     start_period: 40s
+  #   networks:
+  #     - serviceworker
 
   postgres:
     image: postgres:16-alpine
