@@ -1,11 +1,11 @@
 resource "aws_ecr_repository" "nestjs_bff" {
-  name                 = "skin-saas-nestjs-bff"
+  name                 = "${local.name_prefix}-bff"
   image_tag_mutability = "MUTABLE"
   image_scanning_configuration { scan_on_push = true }
 }
 
 resource "aws_ecr_repository" "dotnet_worker" {
-  name                 = "skin-saas-dotnet-worker"
+  name                 = "${local.name_prefix}-worker"
   image_tag_mutability = "MUTABLE"
   image_scanning_configuration { scan_on_push = true }
 }

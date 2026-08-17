@@ -1,3 +1,13 @@
+variable "name_prefix" {
+  type    = string
+  default = "belter-oracle"
+}
+
+variable "aws_region" {
+  type    = string
+  default = "us-east-1"
+}
+
 variable "app_jwt_secret" {
   type      = string
   sensitive = true
@@ -23,17 +33,52 @@ variable "app_aws_secret_access_key" {
   sensitive = true
 }
 
-variable "dotnet_frontend_url" {
+variable "google_client_id" {
   type    = string
-  default = "https://*.vercel.app" # Your production frontend base URL
-}
-
-variable "dotnet_ses_from_email" {
-  type    = string
-  default = "SkinSaaS <weldocarvalho@outlook.com>"
+  default = ""
 }
 
 variable "aws_bucket_name" {
   type    = string
   default = "photo-scoring-presigning"
+}
+
+variable "db_username" {
+  type      = string
+  sensitive = true
+}
+
+variable "db_password" {
+  type      = string
+  sensitive = true
+}
+
+variable "db_name" {
+  type    = string
+  default = "auditoria"
+}
+
+variable "rabbitmq_host" {
+  type      = string
+  sensitive = true
+}
+
+variable "rabbitmq_port" {
+  type    = string
+  default = "5671"
+}
+
+variable "rabbitmq_username" {
+  type      = string
+  sensitive = true
+}
+
+variable "rabbitmq_password" {
+  type      = string
+  sensitive = true
+}
+
+variable "rabbitmq_vhost" {
+  type      = string
+  sensitive = true
 }
