@@ -7,8 +7,8 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using ServiceWorker.Application.Commands.Handlers;
 using ServiceWorker.Application.Consumers;
-using ServiceWorker.Application.Interfaces.Persistence;
 using ServiceWorker.Application.Interfaces.Infrastructure;
+using ServiceWorker.Application.Interfaces.Persistence;
 using ServiceWorker.Consumers.CreateUser;
 using ServiceWorker.Infrastructure;
 using ServiceWorker.Infrastructure.Notifications.Providers;
@@ -35,8 +35,6 @@ var builder = Host.CreateDefaultBuilder(args)
     .ConfigureServices((context, services) =>
     {
         services.AddInfrastructure(context.Configuration);
-
-        // Cleanly inject your production AWS SES transactional email pipeline
         services.AddEmailInfrastructure(context.Configuration);
 
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AnalyzeSkinCommandHandler).Assembly));
@@ -48,50 +46,28 @@ var builder = Host.CreateDefaultBuilder(args)
 
             x.UsingRabbitMq((context, cfg) =>
             {
-                var logger = context.GetRequiredService<ILogger<Program>>();
-                var environment = context.GetRequiredService<IHostEnvironment>();
-
-                logger.LogInformation("Environment = {EnvironmentName}", environment.EnvironmentName);
-
-                // Read values dynamically from your configuration provider
                 var configuration = context.GetRequiredService<IConfiguration>();
-                var rabbitSettings = configuration.GetSection("RabbitMQ");
+                var rabbit = configuration.GetSection("RabbitMQ");
 
-                // Extract configurations with secure fallbacks for local docker-compose environments
-                // var rabbitHost = rabbitSettings["Host"] ?? "localhost";
-                // var rabbitPortStr = rabbitSettings["Port"] ?? "5672";
-                // var rabbitUsername = rabbitSettings["Username"] ?? "guest";
-                // var rabbitPassword = rabbitSettings["Password"] ?? "guest";
-                // var rabbitVirtualHost = rabbitSettings["VirtualHost"] ?? "/"; // <--- Dynamic Read
+                var host = rabbit["Host"] ?? "localhost";
+                var port = ushort.TryParse(rabbit["Port"], out var parsedPort) ? parsedPort : (ushort)5672;
+                var username = rabbit["Username"] ?? "guest";
+                var password = rabbit["Password"] ?? "guest";
+                var virtualHost = rabbit["VirtualHost"] ?? "/";
 
-                var rabbitHost = "leopard.lmq.cloudamqp.com";
-                var rabbitPortStr = "5671";
-                var rabbitUsername = "***REMOVED***";
-                var rabbitPassword = "***REMOVED***";
-                var rabbitVirtualHost = "***REMOVED***";
-
-                ushort rabbitPort = ushort.TryParse(rabbitPortStr, out var parsedPort) ? parsedPort : (ushort)5672;
-
-                logger.LogInformation("Connecting MassTransit to Host={RabbitHost}, Port={RabbitPort}, VirtualHost={rabbitVirtualHost}, Username={RabbitUsername}",
-                    rabbitHost, rabbitPort, rabbitVirtualHost, rabbitUsername);
-
-                // ✅ FIXED: Enforce dynamic host routing assembly parameters
-                cfg.Host(rabbitHost, rabbitPort, rabbitVirtualHost, h =>
+                cfg.Host(host, port, virtualHost, h =>
                 {
-                    h.Username(rabbitUsername);
-                    h.Password(rabbitPassword);
+                    h.Username(username);
+                    h.Password(password);
 
-                    // Secure automated handshake upgrade for CloudAMQP production AMQPS endpoints
-                    // if (rabbitPort != 5671)
-                    // {
-                    //     h.UseSsl(s => s.Protocol = System.Security.Authentication.SslProtocols.Tls12);
-                    // }
-
+                    if (port == 5671)
+                    {
+                        h.UseSsl(s => s.Protocol = System.Security.Authentication.SslProtocols.Tls12);
+                    }
                 });
 
                 cfg.ConfigureEndpoints(context);
             });
-
         });
 
         services.AddHealthChecks();
@@ -115,7 +91,7 @@ public class WorkerService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("🚀 Vamos ver se está aqui... ServiceWorker iniciado - aguardando mensagens...");
+        _logger.LogInformation("ServiceWorker iniciado - aguardando mensagens...");
 
         await Task.Delay(Timeout.Infinite, stoppingToken);
     }
@@ -133,22 +109,14 @@ public class WorkerService : BackgroundService
     }
 }
 
-#region Infrastructure Service Extensions
 public static class EmailInfrastructureExtensions
 {
-    /// <summary>
-    /// Registers the low-cost AWS SES provider, domain user services, and native SDK dependencies.
-    /// </summary>
     public static IServiceCollection AddEmailInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        // 1. Core Authentication Mail Pipeline Registrations
         services.AddScoped<IMagicLinkEmailService, MagicLinkEmailService>();
         services.AddScoped<IEmailNotificationProvider, AwsSesEmailProvider>();
-
-        // 2. Explicitly map your Domain Service Interface to its repository implementation
         services.AddScoped<IUserRepository, UserRepository>();
 
-        // 3. MANUAL OVERRIDE FIX: Parse keys directly to stop automatic system profile searching loops
         var awsSection = configuration.GetSection("AWS");
 
         var accessKey = awsSection["AccessKey"] ?? throw new InvalidOperationException("AWS:AccessKey is missing.");
@@ -158,12 +126,9 @@ public static class EmailInfrastructureExtensions
         var region = Amazon.RegionEndpoint.GetBySystemName(regionName);
         var credentials = new Amazon.Runtime.BasicAWSCredentials(accessKey, secretKey);
 
-        // Explicitly instantiate and inject the service instance as a Singleton to optimize execution lifecycle
-        var sesClient = new Amazon.SimpleEmail.AmazonSimpleEmailServiceClient(credentials, region);
+        var sesClient = new AmazonSimpleEmailServiceClient(credentials, region);
         services.AddSingleton<IAmazonSimpleEmailService>(sesClient);
 
         return services;
     }
 }
-
-#endregion

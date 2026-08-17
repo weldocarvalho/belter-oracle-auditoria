@@ -1,0 +1,26 @@
+#!/bin/sh
+
+export PATH="$HOME/.local/bin:$PATH"
+
+command -v gitleaks >/dev/null 2>&1 || exit 0
+
+ZERO="0000000000000000000000000000000000000000"
+
+while read local_ref local_sha remote_ref remote_sha; do
+    if [ "$local_sha" = "$ZERO" ]; then
+        continue
+    fi
+
+    if [ "$remote_sha" = "$ZERO" ]; then
+        range="$local_sha"
+    else
+        range="$remote_sha..$local_sha"
+    fi
+
+    if ! gitleaks git --log-opts="$range" --redact --verbose; then
+        echo "gitleaks: push bloqueado - segredos detectados no range $range."
+        exit 1
+    fi
+done
+
+exit 0

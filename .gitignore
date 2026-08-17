@@ -1,0 +1,26 @@
+# ===== Terraform =====
+*.tfvars
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+crash.log
+override.tf
+override.tf.json
+
+# ===== Environment / Secrets =====
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+
+# ===== OS =====
+.DS_Store
+
+# ===== Editors / IDEs =====
+.idea/
+.vscode/
+*.swp
+*.swo

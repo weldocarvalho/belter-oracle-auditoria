@@ -1,0 +1,6 @@
+# guest:guest do RabbitMQ local (docker-compose) - nao e segredo real
+4edd6ee7e596eb3582162c25962838cfc3ed6169:apps/worker-dot-net/setup.sh:curl-auth-user:35
+# docs sera removido (Fase C)
+f7dd0f755cee9697ae8f6483449ad1c8837c541f:docs/architecture/001-landing-page-n-the-hook.md:generic-api-key:71
+# URL com token placeholder em README historico (pasta renomeada)
+12ad2944dd5d715e848d0578e541cac660d2b84e:apps/api-node-nestjs/README.md:generic-api-key:5
