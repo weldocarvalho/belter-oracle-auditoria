@@ -6,6 +6,6 @@ import { SkinAnalysisPublisher } from './skin-analysis.publisher';
 @Module({
   controllers: [SkinAnalysisController],
   providers: [SkinAnalysisService, SkinAnalysisPublisher],
+  exports: [SkinAnalysisPublisher],
 })
-
 export class SkinAnalysisModule {}

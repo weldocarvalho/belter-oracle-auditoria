@@ -7,15 +7,14 @@
 // }
 
 export interface InitiateSkinAnalysisEvent {
-  patientId: string;        // Deve ser enviado um UUID válido (ex: 'uuidv4()')
-  skinType: string;      
+  patientId: string; // Deve ser enviado um UUID válido (ex: 'uuidv4()')
+  skinType: string;
   skinConcerns: string;
   bodyArea: string;
   correlationId: string; // Deve ser enviado um UUID válido
-  requestedAt: string;  // Nova propriedade: Enviar em formato ISO (ex: new Date().toISOString())
+  requestedAt: string; // Nova propriedade: Enviar em formato ISO (ex: new Date().toISOString())
   photoUrls: string[]; // Nova propriedade: Array de URLs das fotos enviadas pelo usuário
 }
-
 
 // O envelope padrão que o MassTransit exige por baixo dos panos
 export interface MassTransitEnvelope<T> {

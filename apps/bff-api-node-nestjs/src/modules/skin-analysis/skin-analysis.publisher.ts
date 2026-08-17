@@ -1,48 +1,53 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import amqp, { AmqpConnectionManager, ChannelWrapper } from 'amqp-connection-manager';
-import { MassTransitEnvelope, InitiateSkinAnalysisEvent } from './skin-analysis.contracts';
+import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import amqp, {
+  AmqpConnectionManager,
+  Channel,
+  ChannelWrapper,
+} from 'amqp-connection-manager';
+import {
+  buildMessageType,
+  MASS_TRANSIT_CONTENT_TYPE,
+  RABBITMQ_EXCHANGES,
+  RABBITMQ_URL,
+} from '../../shared/rabbitmq/rabbitmq.constants';
+import {
+  InitiateSkinAnalysisEvent,
+  MassTransitEnvelope,
+} from './skin-analysis.contracts';
 
 @Injectable()
 export class SkinAnalysisPublisher implements OnModuleInit, OnModuleDestroy {
   private connection!: AmqpConnectionManager;
   private channelWrapper!: ChannelWrapper;
 
-  // OnModuleInit roda automaticamente quando o NestJS liga
-  async onModuleInit() {
+  onModuleInit() {
+    this.connection = amqp.connect([RABBITMQ_URL]);
 
-  this.connection = amqp.connect(['amqp://localhost:5672']);
-
-  this.channelWrapper = this.connection.createChannel({
-    json: true,
-    setup: (channel: any) => {
-      // AJUSTE AQUI: Nome completo da exchange esperada pelo MassTransit
-      return channel.assertExchange(
-        'DermePlan.Worker.Application.Models:InitiateSkinAnalysisEvent', 
-        'fanout', 
-        { durable: true }
-      );
-    },
-  });
-}
+    this.channelWrapper = this.connection.createChannel({
+      json: true,
+      setup: (channel: Channel) =>
+        channel.assertExchange(
+          RABBITMQ_EXCHANGES.initiateSkinAnalysis,
+          'fanout',
+          { durable: true },
+        ),
+    });
+  }
 
   async publishSubmission(data: InitiateSkinAnalysisEvent): Promise<void> {
-    
-  const envelope: MassTransitEnvelope<InitiateSkinAnalysisEvent> = {
-    message: data,
-    messageType: ['urn:message:DermePlan.Worker.Application.Models:InitiateSkinAnalysisEvent'],
-  };
+    const envelope: MassTransitEnvelope<InitiateSkinAnalysisEvent> = {
+      message: data,
+      messageType: buildMessageType(RABBITMQ_EXCHANGES.initiateSkinAnalysis),
+    };
 
-  // AJUSTE AQUI: Publica na Exchange correta com o prefixo do namespace
-  await this.channelWrapper.publish(
-    'DermePlan.Worker.Application.Models:InitiateSkinAnalysisEvent',
-    '', // Sem routing key (Fanout ignora isso)
-    envelope,
-    { contentType: 'application/vnd.masstransit+json' } 
-  );
-}
+    await this.channelWrapper.publish(
+      RABBITMQ_EXCHANGES.initiateSkinAnalysis,
+      '',
+      envelope,
+      { contentType: MASS_TRANSIT_CONTENT_TYPE },
+    );
+  }
 
-
-  // Fecha as conexões de forma segura se o NestJS desligar (Graceful Shutdown)
   async onModuleDestroy() {
     await this.channelWrapper.close();
     await this.connection.close();

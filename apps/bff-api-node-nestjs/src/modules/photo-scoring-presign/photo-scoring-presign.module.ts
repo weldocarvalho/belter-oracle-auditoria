@@ -6,7 +6,6 @@ import { ConfigModule } from '@nestjs/config';
 @Module({
   controllers: [PhotoScoringPresignController],
   providers: [PhotoScoringPresignService],
-  imports: [ConfigModule]
+  imports: [ConfigModule],
 })
-
 export class PhotoScoringPresignModule {}

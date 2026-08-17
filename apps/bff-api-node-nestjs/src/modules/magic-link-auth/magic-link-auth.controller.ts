@@ -1,11 +1,7 @@
-// magic-link-auth.controller.ts
-import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { randomBytes } from 'crypto';
-import { MagicLinkAuthPublisher } from './magic-link-auth.publisher'; 
+import { MagicLinkAuthPublisher } from './magic-link-auth.publisher';
 import { CreateUserEventRequest } from './magic-link-auth.contracts';
-import { Get, Query, UnauthorizedException } from '@nestjs/common';
-import type { MagicLinkAuthService } from './magic-link-auth.service';
-//import { MagicLinkAuthService } from './magic-link-auth.service';
 
 interface MagicLinkRequestDto {
   email: string;
@@ -17,23 +13,15 @@ interface MagicLinkRequestDto {
   };
 }
 
-@Controller('api/v1/auth') // BASE http://localhost:3333/api/v1/auth
+@Controller('api/v1/auth')
 export class MagicLinkAuthController {
-  // Inject the publisher and the new service layer
-  constructor(
-    private readonly authPublisher: MagicLinkAuthPublisher
-    // private readonly authService: MagicLinkAuthService
-  ) {}
+  constructor(private readonly authPublisher: MagicLinkAuthPublisher) {}
 
   @Post('magic-link')
-  @HttpCode(HttpStatus.ACCEPTED) // Returns 202 Accepted status for optimal frontend responsiveness
+  @HttpCode(HttpStatus.ACCEPTED)
   async requestMagicLink(@Body() payload: MagicLinkRequestDto) {
-    console.log('Received magic link request for email:', payload.email);
-
-    // Generates a cryptographically secure token for verification lookup validation matches
     const secureToken = randomBytes(32).toString('hex');
-    
-    // Maps the incoming DTO properties to the required C# contract schema fields
+
     const eventPayload: CreateUserEventRequest = {
       email: payload.email.trim().toLowerCase(),
       token: secureToken,
@@ -41,31 +29,11 @@ export class MagicLinkAuthController {
       manualSelectedGrade: payload.diagnostic.manualSelectedGrade,
       waterIntake: payload.diagnostic.waterIntake,
       circulationProfile: payload.diagnostic.circulationProfile,
-      requestedAt: new Date().toISOString()
+      requestedAt: new Date().toISOString(),
     };
 
-    // Enqueues the event payload via RabbitMQ
     await this.authPublisher.publishAuthRequested(eventPayload);
 
     return { status: 'queued' };
   }
-
-  // @Get('verify')
-  // @HttpCode(HttpStatus.OK)
-  // async verifyMagicLink(@Query('token') token: string) {
-  //   if (!token) {
-  //     throw new UnauthorizedException('Token de autenticação ausente.');
-  //   }
-
-  //   // Process token validation and immediate consumption
-  //   const userSession = await this.authService.validateAndConsumeToken(token);
-    
-  //   // Return session data + JWT back to Next.js route handler
-  //   return {
-  //     statusCode: HttpStatus.OK,
-  //     email: userSession.email,
-  //     userId: userSession.userId,
-  //     token: userSession.jwtToken
-  //   };
-  // }
 }
