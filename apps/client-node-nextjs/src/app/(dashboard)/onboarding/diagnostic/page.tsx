@@ -9,7 +9,18 @@ import { QuizReport } from "./QuizReport";
 
 export default function DiagnosticQuiz() {
   const [currentStep, setCurrentStep] = useState<StepKeys>("water");
-  const [sessionId, setSessionId] = useState("");
+  const [sessionId] = useState<string>(() => {
+    if (typeof window === "undefined") {
+      return "";
+    }
+    const existing = localStorage.getItem("skin_tmp_session");
+    if (existing) {
+      return existing;
+    }
+    const generated = `tmp_${crypto.randomUUID()}`;
+    localStorage.setItem("skin_tmp_session", generated);
+    return generated;
+  });
   const [loadingTextIndex, setLoadingTextIndex] = useState(0);
 
   const [formData, setFormData] = useState<DiagnosticData>({
@@ -19,15 +30,6 @@ export default function DiagnosticQuiz() {
     assessmentType: null,
     manualSelectedGrade: null,
   });
-
-  useEffect(() => {
-    let localId = localStorage.getItem("skin_tmp_session");
-    if (!localId) {
-      localId = `tmp_${crypto.randomUUID()}`;
-      localStorage.setItem("skin_tmp_session", localId);
-    }
-    setSessionId(localId);
-  }, []);
 
   const processingMessages = [
     "Mapeando relevo cutâneo...",

@@ -20,4 +20,16 @@ public class UserRepository(ServiceWorkerDbContext dbContext) : IUserRepository
     {
         return await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
     }
+
+    public async Task<User?> GetUserByGoogleSubjectAsync(string googleSubject, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Users.FirstOrDefaultAsync(u => u.GoogleSubject == googleSubject, cancellationToken);
+    }
+
+    public async Task<bool> UpdateUserAsync(User user, CancellationToken cancellationToken = default)
+    {
+        _dbContext.Users.Update(user);
+        var entries = await _dbContext.SaveChangesAsync(cancellationToken);
+        return entries > 0;
+    }
 }

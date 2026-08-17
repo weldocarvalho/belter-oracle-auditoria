@@ -1,19 +1,17 @@
-using Amazon.SimpleEmail;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using ServiceWorker.Application.Cases.Users.Commands.Authenticate;
 using ServiceWorker.Application.Commands.Handlers;
 using ServiceWorker.Application.Consumers;
 using ServiceWorker.Application.Interfaces.Infrastructure;
 using ServiceWorker.Application.Interfaces.Persistence;
-using ServiceWorker.Consumers.CreateUser;
 using ServiceWorker.Infrastructure;
-using ServiceWorker.Infrastructure.Notifications.Providers;
-using ServiceWorker.Infrastructure.Notifications.Services;
 using ServiceWorker.Infrastructure.Repositories.EFCore;
+using ServiceWorker.Infrastructure.Security;
 
 var builder = Host.CreateDefaultBuilder(args)
     .UseSerilog((context, configuration) =>
@@ -35,14 +33,15 @@ var builder = Host.CreateDefaultBuilder(args)
     .ConfigureServices((context, services) =>
     {
         services.AddInfrastructure(context.Configuration);
-        services.AddEmailInfrastructure(context.Configuration);
+        services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
+        services.AddScoped<IUserRepository, UserRepository>();
 
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AnalyzeSkinCommandHandler).Assembly));
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AuthenticateCommandHandler).Assembly));
 
         services.AddMassTransit(x =>
         {
             x.AddConsumer<SkinAnalysisConsumer>();
-            x.AddConsumer<CreateUserConsumer>();
+            x.AddConsumer<AuthenticateConsumer>();
 
             x.UsingRabbitMq((context, cfg) =>
             {
@@ -106,29 +105,5 @@ public class WorkerService : BackgroundService
     {
         await _busControl.StopAsync(cancellationToken);
         await base.StopAsync(cancellationToken);
-    }
-}
-
-public static class EmailInfrastructureExtensions
-{
-    public static IServiceCollection AddEmailInfrastructure(this IServiceCollection services, IConfiguration configuration)
-    {
-        services.AddScoped<IMagicLinkEmailService, MagicLinkEmailService>();
-        services.AddScoped<IEmailNotificationProvider, AwsSesEmailProvider>();
-        services.AddScoped<IUserRepository, UserRepository>();
-
-        var awsSection = configuration.GetSection("AWS");
-
-        var accessKey = awsSection["AccessKey"] ?? throw new InvalidOperationException("AWS:AccessKey is missing.");
-        var secretKey = awsSection["SecretKey"] ?? throw new InvalidOperationException("AWS:SecretKey is missing.");
-        var regionName = awsSection["Region"] ?? "us-east-1";
-
-        var region = Amazon.RegionEndpoint.GetBySystemName(regionName);
-        var credentials = new Amazon.Runtime.BasicAWSCredentials(accessKey, secretKey);
-
-        var sesClient = new AmazonSimpleEmailServiceClient(credentials, region);
-        services.AddSingleton<IAmazonSimpleEmailService>(sesClient);
-
-        return services;
     }
 }

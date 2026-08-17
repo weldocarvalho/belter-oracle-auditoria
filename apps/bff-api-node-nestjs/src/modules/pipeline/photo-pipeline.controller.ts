@@ -1,12 +1,21 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { ZodValidationPipe } from '../../common/zod-validation.pipe';
 import { z } from 'zod';
 import { SkinAnalysisPublisher } from '../skin-analysis/skin-analysis.publisher';
 import { InitiateSkinAnalysisEvent } from '../skin-analysis/skin-analysis.contracts';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { CurrentUser } from '../auth/current-user.decorator';
+import type { AuthenticatedUser } from '../auth/jwt-auth.guard';
 
 const PhotoProcessSchema = z.object({
-  userId: z.string().min(1),
   fileKey: z.string().min(1),
 });
 
@@ -16,15 +25,16 @@ export class PhotoPipelineController {
 
   @Post('process')
   @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
   async processPhoto(
     @Body(new ZodValidationPipe(PhotoProcessSchema))
     body: {
-      userId: string;
       fileKey: string;
     },
+    @CurrentUser() user: AuthenticatedUser,
   ) {
     const event: InitiateSkinAnalysisEvent = {
-      patientId: body.userId,
+      patientId: user.id,
       skinType: '',
       skinConcerns: '',
       bodyArea: '',

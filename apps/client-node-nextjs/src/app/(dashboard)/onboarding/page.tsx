@@ -8,18 +8,14 @@ import { Button } from '@/components/ui/button';
 import { Sparkles, ArrowRight } from 'lucide-react';
 
 export default function OnboardingPage() {
-  const { 
-    currentState, 
-    setCurrentState, 
-    processCapturedPhoto, 
-    analysis, 
-    errorMessage, 
-    resetPipeline 
-  } = usePhotoScoring({
-    bffUrl: process.env.NEXT_PUBLIC_BFF_URL || 'http://localhost:3333',
-    wsUrl: process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3333',
-    userId: 'usr_prod_01j5x' // Map token contextual subject identifier here later
-  });
+  const {
+    currentState,
+    setCurrentState,
+    processCapturedPhoto,
+    analysis,
+    errorMessage,
+    resetPipeline
+  } = usePhotoScoring();
 
   return (
     <main className="container max-w-4xl mx-auto px-4 py-12 flex flex-col items-center justify-center min-h-[85vh]">

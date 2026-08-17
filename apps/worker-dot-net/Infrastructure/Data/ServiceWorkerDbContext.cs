@@ -37,6 +37,22 @@ public class ServiceWorkerDbContext : DbContext
          .HasMaxLength(100)
          .IsRequired(false);
 
+        b.Property(u => u.AuthProvider)
+         .HasMaxLength(20)
+         .IsRequired();
+
+        b.Property(u => u.PasswordHash)
+         .HasMaxLength(255)
+         .IsRequired(false);
+
+        b.Property(u => u.GoogleSubject)
+         .HasMaxLength(255)
+         .IsRequired(false);
+
+        b.HasIndex(u => u.GoogleSubject)
+         .IsUnique()
+         .HasFilter("\"google_subject\" IS NOT NULL");
+
         // Advanced Postgres Columns Maps
         b.Property(u => u.LPQuizDiagnosticJson)
          .HasColumnType("jsonb")

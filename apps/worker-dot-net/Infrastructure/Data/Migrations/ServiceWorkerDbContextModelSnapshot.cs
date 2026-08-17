@@ -99,6 +99,22 @@ namespace ServiceWorker.Infrastructure.Data.Migrations
                         .HasColumnType("character varying(255)")
                         .HasColumnName("email");
 
+                    b.Property<string>("AuthProvider")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("auth_provider");
+
+                    b.Property<string>("PasswordHash")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("password_hash");
+
+                    b.Property<string>("GoogleSubject")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("google_subject");
+
                     b.Property<bool>("IsVerified")
                         .HasColumnType("boolean")
                         .HasColumnName("is_verified");
@@ -137,6 +153,11 @@ namespace ServiceWorker.Infrastructure.Data.Migrations
                     b.HasIndex("Email")
                         .IsUnique()
                         .HasDatabaseName("ix_users_email");
+
+                    b.HasIndex("GoogleSubject")
+                        .IsUnique()
+                        .HasDatabaseName("ix_users_google_subject")
+                        .HasFilter("\"google_subject\" IS NOT NULL");
 
                     b.ToTable("users", (string)null);
                 });

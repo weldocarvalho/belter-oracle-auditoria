@@ -3,20 +3,14 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { AnalysisResult, OnboardingState } from '../types';
 import { optimizePhoto } from '../services/imageOptimizer';
+import { apiFetch, buildWsUrl, getSessionUser } from '@/lib/auth';
 
-interface PhotoScoringConfig {
-  bffUrl: string;
-  wsUrl: string;
-  userId: string;
-}
-
-export function usePhotoScoring({ bffUrl, wsUrl, userId }: PhotoScoringConfig) {
+export function usePhotoScoring() {
   const [currentState, setCurrentState] = useState<OnboardingState>('IDLE');
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
 
-  // Safely teardown WebSocket connections to prevent memory leaks
   const cleanupWebSocket = useCallback(() => {
     if (wsRef.current) {
       wsRef.current.close();
@@ -26,20 +20,19 @@ export function usePhotoScoring({ bffUrl, wsUrl, userId }: PhotoScoringConfig) {
 
   const connectToPipelineSocket = useCallback(() => {
     cleanupWebSocket();
-    
-    const ws = new WebSocket(`${wsUrl}?userId=${userId}`);
+
+    const ws = new WebSocket(buildWsUrl());
     wsRef.current = ws;
 
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        // Explicit event routing matching your .NET infrastructure pattern
         if (data.event === 'skin.analysis.completed') {
           setAnalysis(data.payload);
           setCurrentState('COMPLETED');
           cleanupWebSocket();
         }
-      } catch (err) {
+      } catch {
         setErrorMessage('Erro ao ler atualização em tempo real.');
         setCurrentState('ERROR');
       }
@@ -48,28 +41,32 @@ export function usePhotoScoring({ bffUrl, wsUrl, userId }: PhotoScoringConfig) {
     ws.onerror = () => {
       setErrorMessage('Conexão instável. Aguardando servidor...');
     };
-  }, [wsUrl, userId, cleanupWebSocket]);
+  }, [cleanupWebSocket]);
 
   const processCapturedPhoto = async (rawBlob: Blob) => {
+    const user = getSessionUser();
+    if (!user) {
+      setErrorMessage('Faça login para iniciar o escaneamento.');
+      setCurrentState('ERROR');
+      return;
+    }
+
     setCurrentState('UPLOADING');
     setErrorMessage(null);
 
     try {
-      // 1. Client-side performance optimization
       const optimizedBlob = await optimizePhoto(rawBlob);
 
-      // 2. Request short-lived secure upload credential from NestJS BFF
-      const tokenResponse = await fetch(`${bffUrl}/api/v1/photo-scoring/presigned-url`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ patientId: userId, fileType: 'image/jpeg' }),
-      });
-      
-      if (!tokenResponse.ok) throw new Error('Não foi possível autorizar o envio seguro.');
-      const { uploadUrl, fileKey } = await tokenResponse.json();
+      const presignResponse = await apiFetch<{ uploadUrl: string; fileKey: string }>(
+        '/api/v1/photo-scoring/presigned-url',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fileType: 'image/jpeg' }),
+        },
+      );
 
-      // 3. Direct R2 upload (bypassing backend CPU cycles entirely)
-      const r2Response = await fetch(uploadUrl, {
+      const r2Response = await fetch(presignResponse.uploadUrl, {
         method: 'PUT',
         headers: { 'Content-Type': 'image/jpeg' },
         body: optimizedBlob,
@@ -77,21 +74,25 @@ export function usePhotoScoring({ bffUrl, wsUrl, userId }: PhotoScoringConfig) {
 
       if (!r2Response.ok) throw new Error('Falha ao transferir imagem para o cofre seguro.');
 
-      // 4. Initialize real-time listening socket before firing backend event
       connectToPipelineSocket();
       setCurrentState('PROCESSING');
 
-      // 5. Fire asynchronous event routing trigger to RabbitMQ through BFF
-      const pipelineTrigger = await fetch(`${bffUrl}/api/v1/photos/process`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, fileKey }),
-      });
+      const pipelineTrigger = await apiFetch<{ success: boolean; status: string }>(
+        '/api/v1/photos/process',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fileKey: presignResponse.fileKey }),
+        },
+      );
 
-      if (!pipelineTrigger.ok) throw new Error('Erro ao enfileirar processamento inteligente.');
-
-    } catch (err: any) {
-      setErrorMessage(err.message || 'Erro crítico durante a execução do pipeline.');
+      if (!pipelineTrigger.success) throw new Error('Erro ao enfileirar processamento inteligente.');
+    } catch (err) {
+      setErrorMessage(
+        err instanceof Error
+          ? err.message
+          : "Erro crítico durante a execução do pipeline.",
+      );
       setCurrentState('ERROR');
       cleanupWebSocket();
     }

@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import { IncomingMessage } from 'http';
 import {
   OnGatewayConnection,
@@ -14,9 +16,15 @@ export class PipelineWsGateway
 {
   private readonly clients = new Map<string, Set<WebSocket>>();
 
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+  ) {}
+
   handleConnection(client: WebSocket, request: IncomingMessage) {
     const url = new URL(request.url ?? '/', 'http://localhost');
-    const userId = url.searchParams.get('userId');
+    const token = url.searchParams.get('token');
+    const userId = token ? this.resolveUserId(token) : null;
 
     if (!userId) {
       client.close();
@@ -50,6 +58,18 @@ export class PipelineWsGateway
       if (client.readyState === WebSocket.OPEN) {
         client.send(data);
       }
+    }
+  }
+
+  private resolveUserId(token: string): string | null {
+    try {
+      const payload = this.jwtService.verify<{ sub?: string }>(token, {
+        secret: this.configService.getOrThrow<string>('JWT_SECRET'),
+      });
+
+      return payload.sub ?? null;
+    } catch {
+      return null;
     }
   }
 }

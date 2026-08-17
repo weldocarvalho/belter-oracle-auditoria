@@ -1,33 +1,37 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { CheckCircle2, Copy, QrCode, ShieldCheck, Zap, Sparkles, Droplets, AlertTriangle } from "lucide-react";
+import React, { useState } from "react";
+import { Copy, QrCode, ShieldCheck, Zap, Sparkles, Droplets, AlertTriangle } from "lucide-react";
 import ConsolidatedAuthSheet from "../../../components/ConsolidatedAuthSheet";
 
 export default function ReportPage() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
-  const [quizData, setQuizData] = useState<any>(null);
-  
-  // Pix Key Placeholder for "Pix Copia e Cola"
-  const mockPixKey = "00020101021126580014br.gov.bcb.pix0136e3b07384-d113-4c4e-9c8e-cfc49bf670d4520400005303986540419.905802BR5924SkinTreatmentMicroSaaS6009SaoPaulo62070503***6304E2A1";
-
-  useEffect(() => {
-    // Collect cached data from client storage safely inside the browser sandbox
-    const localSession = localStorage.getItem("skin_tmp_session");
-    if (localSession) {
-      // For presentation purposes, we simulate the processed calculation results 
-      // based on the choices selected back in Phase 2
-      setQuizData({
-        sessionId: localSession,
-        hydrationScore: "42/100",
-        circulationRisk: "Elevado",
-        detectedGrade: "Grau 2 (Edematoso)",
-        smoothnessIndex: "68/100"
-      });
+  const [quizData] = useState<{
+    sessionId?: string | null;
+    hydrationScore?: string;
+    circulationRisk?: string;
+    detectedGrade?: string;
+    smoothnessIndex?: string;
+  } | null>(() => {
+    if (typeof window === "undefined") {
+      return null;
     }
-  }, []);
+    const localSession = localStorage.getItem("skin_tmp_session");
+    if (!localSession) {
+      return null;
+    }
+    return {
+      sessionId: localSession,
+      hydrationScore: "42/100",
+      circulationRisk: "Elevado",
+      detectedGrade: "Grau 2 (Edematoso)",
+      smoothnessIndex: "68/100"
+    };
+  });
+
+  const mockPixKey = "00020101021126580014br.gov.bcb.pix0136e3b07384-d113-4c4e-9c8e-cfc49bf670d4520400005303986540419.905802BR5924SkinTreatmentMicroSaaS6009SaoPaulo62070503***6304E2A1";
 
   const handlePixUnlockClick = () => {
     if (!isAuthenticated) {
@@ -38,11 +42,13 @@ export default function ReportPage() {
     }
   };
 
-  const handleAuthSuccess = async (authProfile: { email: string; provider: string }) => {
+  const handleAuthSuccess = (authProfile: {
+    email: string;
+    provider: "credentials" | "google";
+  }) => {
     setIsAuthOpen(false);
     setIsAuthenticated(true);
 
-    // CONSOLIDATED HANDSHAKE: Package cached vectors and auth profile into one server request
     const outputPayload = {
       auth: authProfile,
       session: quizData?.sessionId,
@@ -50,8 +56,6 @@ export default function ReportPage() {
     };
 
     console.log("NestJS BFF Ingestion payload dispatched successfully:", outputPayload);
-    // At this stage, NestJS creates the PostgreSQL User record, populates the vectors,
-    // and returns the live Pix payload data asynchronously.
   };
 
   const handleCopyPix = () => {

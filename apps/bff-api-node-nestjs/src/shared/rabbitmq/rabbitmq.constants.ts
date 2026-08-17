@@ -4,10 +4,13 @@ export const MASS_TRANSIT_CONTENT_TYPE = 'application/vnd.masstransit+json';
 
 export const RABBITMQ_EXCHANGES = {
   initiateSkinAnalysis:
-    'DermePlan.Worker.Application.Models:InitiateSkinAnalysisEvent',
-  createUser: 'ServiceWorker.Consumers.CreateUser:CreateUserEventRequest',
+    'ServiceWorker.Application.Models:InitiateSkinAnalysisEvent',
   skinAnalysisCompleted:
     'ServiceWorker.Application.Commands.Requests:SkinAnalysisCompletedEvent',
+  authenticate:
+    'ServiceWorker.Application.Commands.Requests:AuthenticateRequest',
+  authenticateResult:
+    'ServiceWorker.Application.Commands.Requests:AuthenticateResult',
 } as const;
 
 export function buildMessageType(urn: string): string[] {
